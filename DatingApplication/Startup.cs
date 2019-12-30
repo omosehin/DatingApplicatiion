@@ -42,6 +42,7 @@ namespace DatingApplication
                            .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
             // services.AddControllers().AddNewtonsoftJson();
             services.AddCors();
+            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
             services.AddAutoMapper(typeof(DatingRespository).Assembly);
             services.AddTransient<Seed>();
             services.AddScoped<IAuthRepository, AuthRepository>();
