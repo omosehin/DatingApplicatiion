@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using DatingApplication.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Threading.Tasks;
-using DatingApplication.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace DatingApplication.Data
 {
@@ -12,7 +9,7 @@ namespace DatingApplication.Data
     {
         private readonly DataContext _context;
 
-        public AuthRepository(DataContext  context)
+        public AuthRepository(DataContext context)
         {
             _context = context;
         }
@@ -40,7 +37,7 @@ namespace DatingApplication.Data
 
         private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
         {
-           using(var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
+            using (var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
             {
                 var computeHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password)); //thesame as password hash
                 for (int i = 0; i < computeHash.Length; i++)
@@ -52,7 +49,7 @@ namespace DatingApplication.Data
 
         }
 
-        private void CreatePasswordHash(string password,out  byte[] passwordHash, out byte[] passwordSalt)
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA512())
             {
@@ -61,7 +58,7 @@ namespace DatingApplication.Data
             }
         }
 
-        
+
 
         public async Task<bool> UserExists(string username)
         {
