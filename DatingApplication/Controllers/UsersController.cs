@@ -17,7 +17,7 @@ namespace DatingApplication.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
-    {
+    {  
         private readonly IDatingRepository _repo;
         private readonly IMapper _mapper;
 
@@ -27,11 +27,12 @@ namespace DatingApplication.Controllers
             _mapper = mapper;
         }
         [HttpGet]
-        public async Task<IActionResult> GetUsers()
-        {
-            var users = await _repo.GetUsers();
+        public async Task<IActionResult> GetUsers([FromQuery]UserParams userParams)
+         {
+            var users = await _repo.GetUsers(userParams);
             var usersToReturn = _mapper.Map<IEnumerable<UserForListDto>>(users);
 
+            Response.AddPagination(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
             return Ok(usersToReturn);
         }
 
