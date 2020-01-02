@@ -13,7 +13,7 @@ namespace DatingApplication.Models
          */
         public int LikerId { get; set; } //a user that likes another user
         public int LikeeId { get; set; } // a user being liked by another user
-        public User Liker { get; set; }
-        public User Likee { get; set; }
+        public virtual User Liker { get; set; }
+        public virtual User Likee { get; set; }
     }
 }

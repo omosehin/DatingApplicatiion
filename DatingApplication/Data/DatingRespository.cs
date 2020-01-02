@@ -45,14 +45,13 @@ namespace DatingApplication.Data
 
         public async Task<User> GetUser(int id)
         {
-            var user = await _context.Users.Include(p => p.Photos).FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
             return user;
         }
 
         public async Task<PagedList<User>> GetUsers(UserParams userParams)
         {
-            var users =  _context.Users.Include(p => p.Photos)
-                .OrderByDescending(u=>u.LastActive).AsQueryable();
+            var users =  _context.Users.OrderByDescending(u=>u.LastActive).AsQueryable();
             users = users.Where(u => u.Id != userParams.UserId);
             users = users.Where(u => u.Gender == userParams.Gender);
 
@@ -93,8 +92,6 @@ namespace DatingApplication.Data
         private async Task<IEnumerable<int>> GetUserLikes(int id,bool likers)
         {
             var user = await _context.Users
-                .Include(x => x.Likers)
-                .Include(x => x.Likees)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             if (likers) //list of person that currently login as liked
@@ -110,6 +107,21 @@ namespace DatingApplication.Data
         {
             return await _context.SaveChangesAsync() > 0;
 
+        }
+
+        public async Task<Message> GetMessage(int id)
+        {
+            return await _context.Messages.FirstOrDefaultAsync(m => m.Id == id);
+        }
+
+        public Task<PagedList<Message>> GetMessagesForUser()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<Message>> GetMessageThread(int userId, int recipientId)
+        {
+            throw new NotImplementedException();
         }
     }
 }
