@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace DatingApplication.Controllers
 {
     [ServiceFilter(typeof(LogUserActivity))]
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -56,7 +55,7 @@ namespace DatingApplication.Controllers
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id,UserForUpdateDto userForUpdateDto)
-        {
+        { 
             if (id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
             

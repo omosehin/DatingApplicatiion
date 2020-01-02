@@ -9,6 +9,8 @@ using AutoMapper;
 using DatingApplication.Data;
 using DatingApplication.Dtos;
 using DatingApplication.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -17,48 +19,70 @@ namespace DatingApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class AuthController :ControllerBase
     {
-        private readonly IAuthRepository _repo;
+       
         private readonly IConfiguration _config;
         private readonly IMapper _mapper;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
 
-        public AuthController(IAuthRepository repo,IConfiguration config,IMapper mapper)
+        public AuthController(IConfiguration config,IMapper mapper,UserManager<User> userManager, SignInManager<User> signInManager)
         {
-            _repo = repo;
             _config = config;
             _mapper = mapper;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
        
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserRegisterDto userRegisterDto)
         {
-            userRegisterDto.Username = userRegisterDto.Username.ToLower();
             
-            if (await _repo.UserExists(userRegisterDto.Username))
-                return BadRequest("Username already exists");
-
          var userToCreate = _mapper.Map<User>(userRegisterDto);
+            var result = await _userManager.CreateAsync(userToCreate, userRegisterDto.Password);
 
-          var createdUser = await _repo.Register(userToCreate, userRegisterDto.Password);
+            var userToReturn = _mapper.Map<UserForDetailedDto>(userToCreate);
 
-            var userToReturn = _mapper.Map<UserForDetailedDto>(createdUser);
-            return CreatedAtRoute("GetUser",new {controller ="Users",id=createdUser.Id }, userToReturn);
+            if (result.Succeeded)
+            { 
+                return CreatedAtRoute("GetUser",new {controller ="Users",id= userToCreate.Id }, userToReturn);
+            }
+
+            return BadRequest(result.Errors);
 
         }
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
         {
 
-            var userFromRepo = await _repo.Login(userForLoginDto.Username, userForLoginDto.Password);
+            var user = await _userManager.FindByNameAsync(userForLoginDto.Username);
 
-            if (userFromRepo == null)
+            if (user == null)
                 return Unauthorized();
 
-            var claims = new[]
+            var result = await _signInManager.CheckPasswordSignInAsync(user, userForLoginDto.Password, false);
+            if(result.Succeeded)
             {
-                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
-            new Claim(ClaimTypes.Name, userFromRepo.Username)
+                var appuser = _mapper.Map<UserForListDto>(user);
+                return Ok(new
+                {
+                    token = GenerateJwtToken(user),
+                   user = appuser
+                });
+            }
+
+            return Unauthorized();
+
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            var claims = new[]
+           {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.UserName)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value));
@@ -75,11 +99,8 @@ namespace DatingApplication.Controllers
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return Ok(new
-            {
-                token
-             = tokenHandler.WriteToken(token)
-            });
+            return tokenHandler.WriteToken(token);
+
         }
     }
 }

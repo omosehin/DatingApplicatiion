@@ -6,27 +6,22 @@ using System.IO;
 using Newtonsoft.Json;
 using DatingApplication.Models;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
 
 namespace DatingApplication.Data
 {
     public class Seed
-    {
-        public static void SeedUsers(DataContext context)
+    { 
+        public static async Task  SeedUsers(DataContext context, UserManager<User> userManager)
         {
-            if (!context.Users.Any())
+            if (!userManager.Users.Any())
             {
                 var userData = File.ReadAllText("Data/UserSeedData.json");
                 var users = JsonConvert.DeserializeObject<List<User>>(userData);  //convert to user object
                 foreach (var user in users)
                 {
-                    byte[] passwordhash, passwordSalt;
-                    CreatePasswordHash("password", out passwordhash, out passwordSalt);
-                    user.PasswordHash = passwordhash;
-                    user.PasswordSalt = passwordSalt;
-                    user.Username = user.Username.ToLower();
-                    context.Users.Add(user);
+                    await userManager.CreateAsync(user, "password");
                 }
-                context.SaveChanges();
             }
         }
 

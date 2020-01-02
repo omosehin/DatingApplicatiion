@@ -9,9 +9,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DatingApplication.Controllers
 {
-    //[Authorize]
+
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class ValuesController : ControllerBase
     {
         private readonly DataContext _context;
