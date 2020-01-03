@@ -67,6 +67,13 @@ namespace DatingApplication
                     };
                 });
 
+            services.AddAuthorization(opts =>
+            {
+                opts.AddPolicy("RequiredAdminRole", policy => policy.RequireRole("Admin"));
+                opts.AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin","Moderator"));
+                opts.AddPolicy("VipOnly", policy => policy.RequireRole("VIP"));
+            });
+
             services.AddDbContext<DataContext>(x => {
                x.UseLazyLoadingProxies();
                 x.UseSqlServer(Configuration.GetConnectionString("ConnectionString"));
